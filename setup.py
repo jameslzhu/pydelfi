@@ -10,11 +10,10 @@ setup(name='pydelfi',
       url='https://github.com/justinalsing/pydelfi',
       packages=find_packages(),
       install_requires=[
-          "tensorflow>=v1.1.0",
-          "getdist",
-          "emcee",
-          "mpi4py",
-          "scipy",
-          "tqdm"
+          "tensorflow~=v1.1.0",
+          "getdist~=1.0.0",
+          "emcee~=3.0.0",
+          "mpi4py~=3.0.3",
+          "scipy~=1.3.3",
+          "tqdm~=4.40.2",
       ])
-
