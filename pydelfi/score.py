@@ -1,18 +1,7 @@
 from scipy.stats import multivariate_normal
 import numpy as np
-import tqdm
+from tqdm.autonotebook import tqdm
 
-def isnotebook():
-    try:
-        shell = get_ipython().__class__.__name__
-        if shell == 'ZMQInteractiveShell':
-            return True   # Jupyter notebook or qtconsole
-        elif shell == 'TerminalInteractiveShell':
-            return False  # Terminal running IPython
-        else:
-            return False  # Other type (?)
-    except NameError:
-        return False
 
 class Gaussian():
 
@@ -48,9 +37,6 @@ class Gaussian():
             self.red_op = red_op
         else:
             self.use_mpi = False
-
-        # Are we in a jupyter notebook or not?
-        self.nb = isnotebook()
 
     # Divide list of jobs between MPI processes
     def allocate_jobs(self, n_jobs):
@@ -93,10 +79,7 @@ class Gaussian():
 
         # Run the simulations with MPI
         if progress_bar:
-            if self.nb:
-                pbar = tqdm.tqdm_notebook(total = inds[-1]+1, desc = "Covariance simulations")
-            else:
-                pbar = tqdm.tqdm(total = inds[-1]+1, desc = "Covariance simulations")
+            pbar = tqdm(total = inds[-1]+1, desc = "Covariance simulations")
         for i in range(inds[-1]+1):
             seed = seed_generator()
             sims[i*sub_batch:i*sub_batch+sub_batch,:] = simulator(self.theta_fiducial, seed, simulator_args, sub_batch)
@@ -138,10 +121,7 @@ class Gaussian():
 
         # Run seed matched simulations for derivatives
         if progress_bar:
-            if self.nb:
-                pbar = tqdm.tqdm_notebook(total = (inds[-1]+1)*self.npar, desc = "Derivative simulations")
-            else:
-                pbar = tqdm.tqdm(total = (inds[-1]+1)*self.npar, desc = "Derivative simulations")
+            pbar = tqdm(total = (inds[-1]+1)*self.npar, desc = "Derivative simulations")
         for k in range(inds[-1]+1):
             
             # Set random seed
