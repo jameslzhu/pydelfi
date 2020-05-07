@@ -1,6 +1,35 @@
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*/.ipynb_checkpoints/*
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# pydelfi
 pydelfi/mades.py
-pydelfi/__pycache__
-pydelfi/*pyc
 reloaded_cosmic_shear_prerun_sims.ipynb
 gamma_made.ipynb
 plotting.ipynb
@@ -23,32 +52,15 @@ shear_map_mpi.py
 IMNN.ipynb
 snl_cmb_lens_tom_class.ipynb
 snl_cmb_lens_tom_class_mpi.py
-.ipynb_checkpoints*
-.DS_Store
-simulators/__pycache__
 simulators/cmb_lens_tom
 simulators/cosmic_shear_map
 simulators/lotka_volterra
 simulators/tsz_pdf
 simulators/gaussian
-compression/__pycache__
-compression/*.pyc
-delfi/__pycache__
-delfi/*.pyc
-distributions/__pycache__
-distributions/*.pyc
-ndes/__pycache__
-ndes/*.pyc
-examples/simulators/__pycache__
-examples/simulators/*.pyc
-examples/simulators/cosmic_shear/__pycache__
-examples/simulators/cosmic_shear/*.pyc
 examples/simulators/cosmic_shear/results/*
 !examples/simulators/cosmic_shear/results/README.md
 examples/simulators/cosmic_shear/results_prerun/*
 !examples/simulators/cosmic_shear/results_prerun/README.md
-examples/simulators/jla_supernovae/__pycache__
-examples/simulators/jla_supernovae/*.pyc
 examples/simulators/jla_supernovae/results/*
 !examples/simulators/jla_supernovae/results/README.md
 examples/simulators/jla_supernovae/results_marginal/*
@@ -58,4 +70,3 @@ examples/simulators/cosmic_shear/results_nuisances
 examples/simulators/cosmic_shear/results_marginal
 examples/simulators/cosmic_shear/mcmc
 examples/simulators/jla_supernovae/results_nofisher/*
-__pycache__
