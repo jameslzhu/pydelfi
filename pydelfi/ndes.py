@@ -60,7 +60,7 @@ class NDE():
             self.optimiser = optimiser(lr=1e-4)
         super().__init__(**kwargs)
 
-    @tf.function
+    # @tf.function
     def single_train_epoch(self, dataset, stack, variables_list, stack_size, n_batch):
         loss = tf.zeros((stack_size,))
         for step, xy_batch_train in enumerate(dataset):
@@ -72,14 +72,14 @@ class NDE():
                 # Compute the loss for this batch.
                 neg_log_prob = -tf.reduce_mean(self.log_prob(y_batch_train, conditional=x_batch_train, stack=stack), -1)
                 neg_total_log_prob = tf.reduce_mean(neg_log_prob)
-            # Retrieve the gradients of the trainable variables wrt the loss and
-            # pass to optimizer.
+            # Retrieve the gradients of the trainable variables wrt the loss
+            # and pass to optimizer.
             grads = tape.gradient(neg_total_log_prob, variables_list)
             self.optimiser.apply_gradients(zip(grads, variables_list))
             loss = tf.add(loss, neg_log_prob)
         return tf.divide(loss, n_batch)
 
-    @tf.function
+    # @tf.function
     def single_validate_epoch(self, dataset, stack, stack_size, n_batch):
         loss = tf.zeros((stack_size,))
         for step, xy_batch_train in enumerate(dataset):
@@ -287,7 +287,7 @@ class NDE():
                 print("Training terminated for model {:d} at epoch {:d}.".format(model, epoch + 1))
         return stack
 
-    @tf.function
+    # @tf.function
     def log_prob(self, data, conditional=None, stack=None):
         if stack is None:
             stack = self.stack
