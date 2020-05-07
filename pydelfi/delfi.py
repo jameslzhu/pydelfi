@@ -13,7 +13,7 @@ import tensorflow_probability as tfp
 tfd = tfp.distributions
 
 # pydelfi imports
-from pydelfi import ndes
+from . import ndes
 
 __version__ = "v0.2"
 __author__ = "Justin Alsing, Tom Charnock and Stephen Feeney"

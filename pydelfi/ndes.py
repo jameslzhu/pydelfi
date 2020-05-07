@@ -5,9 +5,9 @@ import pickle
 import os
 import numpy as np
 
-from tensorflow_probability.python.internal import distribution_util
-from tensorflow_probability.python.internal import dtype_util
-from tensorflow_probability.python.internal import tensor_util
+# from tensorflow_probability.python.internal import distribution_util
+# from tensorflow_probability.python.internal import dtype_util
+# from tensorflow_probability.python.internal import tensor_util
 
 tfd = tfp.distributions
 tfb = tfp.bijectors
@@ -16,8 +16,24 @@ dtype = tf.float32
 __version__ = "v0.2"
 __author__ = "Justin Alsing, Tom Charnock and Stephen Feeney"
 
+
+def common_dtype(args_list, preferred_dtype=None):
+    """Returns explict dtype from `args_list` if there is one."""
+    dtype = None
+    for a in tf.nest.flatten(args_list):
+        if hasattr(a, 'dtype'):
+            dt = np.dtype(a.dtype)
+        else:
+            continue
+        if dtype is None:
+            dtype = dt
+        elif dtype != dt:
+            raise TypeError('Found incompatible dtypes, {} and {}.'.format(dtype, dt))
+    return preferred_dtype if dtype is None else tf.dtype.as_dtype(dtype)
+
+
 class NDE():
-    def __init__(self, model, prior, optimiser=tf.keras.optimizers.Adam(lr=1e-4), optimiser_arguments=None, dtype=tf.float32, **kwargs):
+    def __init__(self, model, prior, optimiser=tf.keras.optimizers.Adam, optimiser_arguments=None, dtype=tf.float32, **kwargs):
         self.dtype = dtype
         if self.dtype == tf.float32:
             self.itype = tf.int32
@@ -39,10 +55,10 @@ class NDE():
         self.prior = prior
 
         if optimiser_arguments is not None:
-            self.optimiser = optimiser(optimiser_arguments)
+            self.optimiser = optimiser(**optimiser_arguments)
         else:
-            self.optimiser = optimiser()
-        super(NDE, self).__init__(**kwargs)
+            self.optimiser = optimiser(lr=1e-4)
+        super().__init__(**kwargs)
 
     @tf.function
     def single_train_epoch(self, dataset, stack, variables_list, stack_size, n_batch):
@@ -90,7 +106,7 @@ class NDE():
         stack = list(range(self.n_stack))
         stack_size = self.n_stack
         variables_list = self.get_flat_variables_list(stack)
-        
+
         # Parse full training data and determine size of training set
         data_X, data_Y = data
         data_X = tf.convert_to_tensor(data_X, dtype=self.dtype)
@@ -432,7 +448,7 @@ def ConditionalMaskedAutoregressiveFlow(
         bijector=bijector,
         event_shape=[n_data])
     put_conditional = lambda conditional : dict(
-        zip(["MADE_{}".format(i) for i in range(n_mades)], 
+        zip(["MADE_{}".format(i) for i in range(n_mades)],
             [{"conditional": tf.convert_to_tensor(conditional, dtype=tf.float32)} for i in range(n_mades)]))
     distribution.conditional_log_prob = lambda a, conditional : distribution.log_prob(a, bijector_kwargs=put_conditional(conditional))
     distribution.conditional_prob = lambda a, conditional : distribution.prob(a, bijector_kwargs=put_conditional(conditional))
@@ -454,7 +470,7 @@ class MixtureDensityNetwork(tfd.Distribution):
         :param activation: activation function for network
         :param dtype: tensorflow type
         """
-        super(MixtureDensityNetwork, self).__init__(
+        super().__init__(
             dtype=dtype,
             reparameterization_type=reparameterization_type,
             validate_args=validate_args,
@@ -537,9 +553,6 @@ class MixtureDensityNetwork(tfd.Distribution):
 
 
 class TruncatedMultivariateNormalTriL():
- 
-
-
     def __init__(self,
                loc,
                scale_tril,
@@ -550,20 +563,16 @@ class TruncatedMultivariateNormalTriL():
                dtype=tf.float32,
                name='truncatedMultivariateNormalTriL'):
 
-        super(TruncatedMultivariateNormalTriL, self).__init__()
-   
+        super().__init__()
+
         parameters = dict(locals())
         with tf.name_scope(name) as name:
+            dtype = common_dtype([loc, scale_tril, low, high], dtype)
 
-            dtype = dtype_util.common_dtype([loc, scale_tril, low, high], dtype)
-
-            self.loc = tensor_util.convert_nonref_to_tensor(loc, name='loc',dtype=dtype)
-
-            self.scale_tril = tensor_util.convert_nonref_to_tensor(scale_tril, name='scale_tril', dtype=dtype)
-
-            self.high = tensor_util.convert_nonref_to_tensor(high, name='high', dtype=dtype)
-
-            self.low = tensor_util.convert_nonref_to_tensor(low, name='low', dtype=dtype)
+            self.loc = tf.convert_to_tensor(loc, name='loc',dtype=dtype)
+            self.scale_tril = tf.convert_to_tensor(scale_tril, name='scale_tril', dtype=dtype)
+            self.high = tf.convert_to_tensor(high, name='high', dtype=dtype)
+            self.low = tf.convert_to_tensor(low, name='low', dtype=dtype)
 
             self.mvn = tfd.MultivariateNormalTriL(
                 loc=self.loc, scale_tril=self.scale_tril, validate_args=validate_args,
@@ -764,15 +773,12 @@ class TruncatedMultivariateNormalTriL_(tfd.MultivariateNormalLinearOperator):
         """
         parameters = dict(locals())
         with tf.name_scope(name) as name:
-            dtype = dtype_util.common_dtype([loc, scale_tril, low, high], dtype)
-            loc = tensor_util.convert_nonref_to_tensor(loc, name='loc',
-                                                       dtype=dtype)
-            scale_tril = tensor_util.convert_nonref_to_tensor(
+            dtype = common_dtype([loc, scale_tril, low, high], dtype)
+            loc = tf.convert_to_tensor(loc, name='loc', dtype=dtype)
+            scale_tril = tf.convert_to_tensor(
             scale_tril, name='scale_tril', dtype=dtype)
-            self.high = tensor_util.convert_nonref_to_tensor(high, name='high',
-                                                             dtype=dtype)
-            self.low = tensor_util.convert_nonref_to_tensor(low, name='low',
-                                                            dtype=dtype)
+            self.high = tf.convert_to_tensor(high, name='high', dtype=dtype)
+            self.low = tf.convert_to_tensor(low, name='low', dtype=dtype)
             scale = tf.linalg.LinearOperatorLowerTriangular(
                 scale_tril, is_non_singular=True, is_self_adjoint=False,
                 is_positive_definite=False)
@@ -782,7 +788,7 @@ class TruncatedMultivariateNormalTriL_(tfd.MultivariateNormalLinearOperator):
             self.u = tfd.Blockwise(
                 [tfd.Uniform(low=low[i], high=high[i])
                  for i in range(self.low.shape[0])])
-            super(TruncatedMultivariateNormalTriL, self).__init__(
+            super().__init__(
                 loc=loc,
                 scale=scale,
                 validate_args=validate_args,
